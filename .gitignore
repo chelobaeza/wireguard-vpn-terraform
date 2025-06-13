@@ -1,0 +1,39 @@
+# Local .terraform directories
+.terraform/
+
+# Terraform state files
+*.tfstate
+*.tfstate.backup
+
+# Crash logs
+crash.log
+*.tfcrash
+
+# Variable override files (can contain sensitive data)
+*.tfvars
+*.tfvars.json
+
+# Sensitive files
+*.pem
+*.key
+*.crt
+
+# Ignore plan output
+*.plan
+
+# CLI configuration files
+.terraformrc
+terraform.rc
+
+# OS or editor-specific files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# Python virtual environment (if used for scripts)
+.venv/
+venv/
+__pycache__/
+*.pyc
