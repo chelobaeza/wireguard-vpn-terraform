@@ -1,6 +1,8 @@
 #!/bin/bash
 # Install Docker on Amazon Linux 2
 
+set -x
+
 # Update package index
 sudo yum update -y
 
@@ -23,10 +25,10 @@ curl -SL https://github.com/docker/compose/releases/latest/download/docker-compo
 chmod +x ~/.docker/cli-plugins/docker-compose
 
 # Download the docker-compose.yml file for wg-easy
-curl https://raw.githubusercontent.com/wg-easy/wg-easy/refs/heads/master/docker-compose.yml -o compose.yml
+curl https://raw.githubusercontent.com/chelobaeza/wireguard-vpn-terraform/refs/heads/main/compose.yml -o compose.yml
 
 # Start wg-easy using Docker Compose
-docker compose up -d
+docker compose --project-name vpn up -d
 
 # Nginx configuration
 sudo yum install -y nginx
@@ -34,19 +36,31 @@ sudo yum install -y nss-tools
 
 # Install mkcert for local TLS certificates
 PUBLIC_IP=$(curl -s ifconfig.me)
+echo "Public IP: $PUBLIC_IP"
+
+echo "Downloading mkcert..."
 curl -JLO https://dl.filippo.io/mkcert/latest?for=linux/amd64
 chmod +x mkcert-*
 sudo mv mkcert-* /usr/local/bin/mkcert
 
-mkcert -install
 
+echo "Installing mkcert..."
+export CAROOT="/etc/ssl/mkcert"
+mkdir -p "$CAROOT"
+mkcert -install
 mkcert $PUBLIC_IP
+echo "Certificates generated for $PUBLIC_IP"
 CRT_FILE=$(ls *.pem | grep -v key)
 KEY_FILE=$(ls *-key.pem)
+echo "Certificate file: $CRT_FILE"
+echo "Key file: $KEY_FILE"
 
+echo "Copying certificates to /etc/ssl/local"
 sudo mkdir -p /etc/ssl/local
 sudo cp $CRT_FILE /etc/ssl/local/cert.pem
 sudo cp $KEY_FILE /etc/ssl/local/key.pem
+echo "Certificates copied to /etc/ssl/local"
+
 
 # Configure Nginx to proxy requests to wg-easy
 cat <<EOF | sudo tee /etc/nginx/conf.d/wireguard.conf > /dev/null
@@ -70,3 +84,5 @@ EOF
 sudo nginx -t
 sudo systemctl enable nginx
 sudo systemctl restart nginx
+
+set +x

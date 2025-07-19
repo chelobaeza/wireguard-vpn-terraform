@@ -11,3 +11,7 @@ module "wireguard_instance" {
     project = "vpn"
   }
 }
+
+output "public_ip" {
+  value = module.wireguard_instance.public_ip  
+}
